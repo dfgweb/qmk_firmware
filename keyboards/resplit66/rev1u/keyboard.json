@@ -14,6 +14,7 @@
         "console": true,
         "extrakey": true,
         "mousekey": true,
+        "oled": true,
         "rgb_matrix": true,
     },
     "eeprom": {
