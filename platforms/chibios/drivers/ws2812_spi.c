@@ -200,8 +200,13 @@ void ws2812_init(void) {
 #    endif
         NULL, // data_cb
         NULL, // error_cb
-        PAL_PORT(WS2812_DI_PIN),
-        PAL_PAD(WS2812_DI_PIN),
+#    if SPI_SELECT_MODE == SPI_SELECT_MODE_NONE
+#    elif SPI_SELECT_MODE == SPI_SELECT_MODE_PAD
+        0,
+        0,
+#    elif SPI_SELECT_MODE == SPI_SELECT_MODE_LINE
+        0,
+#    endif
 #    if defined(AT32F415)
         WS2812_SPI_DIVISOR_CTRL1_MDIV_X,
 #        if (WS2812_SPI_DIVISOR == 512 || WS2812_SPI_DIVISOR == 1024)
