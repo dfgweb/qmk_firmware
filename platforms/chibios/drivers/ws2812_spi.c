@@ -164,7 +164,9 @@ static void set_led_color_rgb(ws2812_led_t color, int pos) {
 #endif
 }
 
+#ifdef WS2812_SPI_USE_CIRCULAR_BUFFER
 ws2812_led_t ws2812_leds[WS2812_LED_COUNT];
+#endif
 
 __attribute__((weak)) void ws2812_gpio_init(void) {
     palSetLineMode(WS2812_DI_PIN, WS2812_MOSI_OUTPUT_MODE);
@@ -232,11 +234,19 @@ void ws2812_init(void) {
 }
 
 void ws2812_set_color(int index, uint8_t red, uint8_t green, uint8_t blue) {
-    ws2812_leds[index].r = red;
-    ws2812_leds[index].g = green;
-    ws2812_leds[index].b = blue;
+#ifdef WS2812_SPI_USE_CIRCULAR_BUFFER
+    ws2812_led_t *ws2812_led = &ws2812_leds[index];
+#else
+    ws2812_led_t led, *ws2812_led = &led;
+#endif
+    ws2812_led->r = red;
+    ws2812_led->g = green;
+    ws2812_led->b = blue;
 #if defined(WS2812_RGBW)
-    ws2812_rgb_to_rgbw(&ws2812_leds[index]);
+    ws2812_rgb_to_rgbw(ws2812_led);
+#endif
+#ifndef WS2812_SPI_USE_CIRCULAR_BUFFER
+    set_led_color_rgb(*ws2812_led, index);
 #endif
 }
 
@@ -247,13 +257,14 @@ void ws2812_set_color_all(uint8_t red, uint8_t green, uint8_t blue) {
 }
 
 void ws2812_flush(void) {
+#ifdef WS2812_SPI_USE_CIRCULAR_BUFFER
+    // Just update txbuf output buffer.
     for (int i = 0; i < WS2812_LED_COUNT; i++) {
         set_led_color_rgb(ws2812_leds[i], i);
     }
-
+#else
     // Send async - each led takes ~0.03ms, 50 leds ~1.5ms, animations flushing faster than send will cause issues.
     // Instead spiSend can be used to send synchronously (or the thread logic can be added back).
-#ifndef WS2812_SPI_USE_CIRCULAR_BUFFER
 #    ifdef WS2812_SPI_SYNC
     spiSend(&WS2812_SPI_DRIVER, ARRAY_SIZE(txbuf), txbuf);
 #    else
