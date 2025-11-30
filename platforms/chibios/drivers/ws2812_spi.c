@@ -166,13 +166,16 @@ static void set_led_color_rgb(ws2812_led_t color, int pos) {
 
 ws2812_led_t ws2812_leds[WS2812_LED_COUNT];
 
-void ws2812_init(void) {
+__attribute__((weak)) void ws2812_gpio_init(void) {
     palSetLineMode(WS2812_DI_PIN, WS2812_MOSI_OUTPUT_MODE);
 
 #ifdef WS2812_SPI_SCK_PIN
     palSetLineMode(WS2812_SPI_SCK_PIN, WS2812_SCK_OUTPUT_MODE);
 #endif // WS2812_SPI_SCK_PIN
+}
 
+void ws2812_init(void) {
+    ws2812_gpio_init();
     // TODO: more dynamic baudrate
     static const SPIConfig spicfg = {
 #ifndef HAL_LLD_SELECT_SPI_V2
