@@ -8,3 +8,7 @@
 /* We use the debug port USART on rev1 */
 #define UART_TX_PIN A9
 #define UART_RX_PIN A10
+
+/* For RGB matrix using qmk ws2812 driver */
+#define WS2812_SPI_DRIVER SPID2
+#define WS2812_SPI_DIVISOR 32

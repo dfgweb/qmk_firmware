@@ -14,8 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "_wait.h"
 #include "board.h"
+#include "gpio.h"
 #include "hal.h"
+#include "keycodes.h"
 #include "matrix.h"
 #include "quantum.h"
 #include "split_util.h"
@@ -84,3 +87,55 @@ void led_update_ports(led_t led_state)
     }
   }
 }
+
+/* RGB matrix is an optional board placed under the main board. */
+#ifdef RGB_MATRIX_ENABLE
+/* Default function change OSPEEDR register and remove HIGH SPEED for MOSI! */
+void ws2812_gpio_init(void) {}
+
+void keyboard_post_init_kb(void) {
+  /* Power-on RGB leds and wait for a bit before allowing RGB to continue. */
+  gpio_write_pin_high(LINE_RGB_PWR);
+  wait_us(10);
+  /* Offload to the user func */
+  keyboard_post_init_user();
+}
+
+bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
+  uint8_t layer = get_highest_layer(layer_state);
+  if (layer > 0) {
+    for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
+      for (uint8_t col = 0; col < MATRIX_COLS; ++col) {
+        uint8_t index = g_led_config.matrix_co[row][col];
+        if (index >= led_min && index < led_max && index != NO_LED) {
+            uint16_t kc = keymap_key_to_keycode(layer, (keypos_t){col, row});
+            if (kc <= KC_TRNS) continue;
+            switch (kc) {
+                case KC_F1 ... KC_F12: // red
+                    rgb_matrix_set_color(index, 0xc0, 0, 0);
+                    break;
+                case KC_NUM_LOCK ... KC_KP_DOT: // green
+                    rgb_matrix_set_color(index, 0, 0xc0, 0);
+                    break;
+                case KC_PRINT_SCREEN ... KC_UP: // blue
+                    rgb_matrix_set_color(index, 0, 0, 0xc0);
+                    break;
+                case CONSUMER_KEYCODE_RANGE: // yellow
+                    rgb_matrix_set_color(index, 0xc0, 0xc0, 0);
+                    break;
+                case MOUSE_KEYCODE_RANGE: // cyan
+                    rgb_matrix_set_color(index, 0, 0xc0, 0xc0);
+                    break;
+                case RGB_MATRIX_KEYCODE_RANGE: // purple
+                    rgb_matrix_set_color(index, 0xc0, 0, 0xc0);
+                    break;
+                default:
+                    rgb_matrix_set_color(index, 0xc0, 0xc0, 0xc0);
+            }
+        }
+      }
+    }
+  }
+  return false;
+}
+#endif
