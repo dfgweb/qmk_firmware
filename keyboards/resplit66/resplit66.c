@@ -18,6 +18,7 @@
 #include "board.h"
 #include "gpio.h"
 #include "hal.h"
+#include "keyboard.h"
 #include "keycodes.h"
 #include "matrix.h"
 #include "oled_driver.h"
@@ -29,6 +30,20 @@
  * This works with changes in matrix.c related to MATRIX_UNSELECT_DRIVE_HIGH.
  */
 void matrix_init_pins(void) {}
+
+#ifdef KEYBOARD_resplit66_rev1u
+/* Use PA15 as debug gpio */
+#define LINE_DEBUG PAL_LINE(GPIOA, 15U)
+void keyboard_post_init_user(void) {
+    gpio_set_pin_output_push_pull(LINE_DEBUG);
+    gpio_write_pin_low(LINE_DEBUG);
+}
+void protocol_keyboard_task(void) {
+    gpio_write_pin_high(LINE_DEBUG);
+    keyboard_task();
+    gpio_write_pin_low(LINE_DEBUG);
+}
+#endif
 
 /* V1 board has wrap to PH1 GPIO pin to select right side, but need pulldow because on
  * left side, the pin is floating. So activate pulldown while reading and deactivate it
