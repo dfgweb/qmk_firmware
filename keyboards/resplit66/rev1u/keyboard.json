@@ -7,7 +7,7 @@
     "bootloader": "stm32-dfu",
     "diode_direction": "COL2ROW",
     "build": {
-        "lto": false
+        "lto": true
     },
     "features": {
         "bootmagic": false,
