@@ -31,6 +31,18 @@
  */
 void matrix_init_pins(void) {}
 
+/* Wait 25ns only for both select/unselect.
+ * With rows configured to high-speed output push-pull, Tr/Tf is 3.3ns.
+ */
+void matrix_output_select_delay(void) {
+    asm volatile("nop \n nop" ::
+                 : "memory");
+}
+void matrix_output_unselect_delay(uint8_t line, bool key_pressed) {
+    asm volatile("nop \n nop" ::
+                 : "memory");
+}
+
 #ifdef KEYBOARD_resplit66_rev1u
 /* Use PA15 as debug gpio */
 #define LINE_DEBUG PAL_LINE(GPIOA, 15U)

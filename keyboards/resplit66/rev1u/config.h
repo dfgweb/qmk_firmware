@@ -1,5 +1,7 @@
 /* I don't want gpio to be reconfigured each time. */
 #define MATRIX_UNSELECT_DRIVE_HIGH
+/* Reduce delay to 4 cycles (50ns)  when clock is 80Mhz. */
+#define GPIO_INPUT_PIN_DELAY (CPU_CLOCK / 1000000L / 20)
 
 /* Mandatory parameters for serial_uart.c */
 #define SERIAL_USART_FULL_DUPLEX
